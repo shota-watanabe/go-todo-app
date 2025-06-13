@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"go-todo-app/backend/usecase"
 	"github.com/labstack/echo/v4"
+	"log"
 )
 
 type TodoHandler struct {
@@ -40,7 +41,8 @@ func (th *TodoHandler) CreateTodo(c echo.Context) error {
 	if req.Content == "" {
 		return c.JSON(http.StatusBadRequest, "Content is required")
 	}
-
+	
+	log.Printf("------------------: %s ---------------------", req)
 	todo, err := th.todoUsecase.CreateTodo(req.Content)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())

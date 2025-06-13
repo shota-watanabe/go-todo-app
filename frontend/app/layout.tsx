@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import "./globals.css";
+import Sidebar from "@/components/Sidebar";
+import { Inter } from "next/font/google";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -24,11 +18,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <AuthProvider>{children}</AuthProvider>
+    <html lang="ja">
+      <body className={inter.className}>
+        <AuthProvider>
+          {/* 全体をAuthContextでラップ */}
+          <div className="flex">
+            <Sidebar /> {/* サイドバーを配置 */}
+            <div className="flex-grow ml-64">
+              {/* サイドバーの幅に合わせてマージンを設定 */}
+              {children} {/* 各ページの内容がここにレンダリングされる */}
+            </div>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

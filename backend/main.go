@@ -7,8 +7,8 @@ import (
 	"go-todo-app/backend/usecase"
 	"log"
 
-	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/golang-jwt/jwt/v5"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -28,6 +28,23 @@ func main() {
 	userUsecase := usecase.NewUserUsecase(userRepo, sessionRepo)
 	todoHandler := controller.NewTodoHandler(todoUsecase)
 	userHandler := controller.NewUserHandler(userUsecase)
+	viewGroupCompanyRepo := repository.NewSQLiteViewGroupCompanyRepository(db)
+	sharedProductRepo := repository.NewSQLiteSharedProductRepository(db)
+	projectRepo := repository.NewSQLiteProjectRepository(db)
+	projectProductRepo := repository.NewSQLiteProjectProductRepository(db)
+	organizationRepo := repository.NewSQLiteOrganizationRepository(db) // OrganizationRepositoryも追加
+
+	// Usecase層への依存性注入 (NewSharedDataUseCaseの引数を追加)
+	sharedDataUsecase := usecase.NewSharedDataUseCase(
+		viewGroupCompanyRepo,
+		sharedProductRepo,
+		projectRepo,
+		projectProductRepo,
+		organizationRepo,
+	)
+	// TODO: Usecase層のsharedDataInteractorにOrganizationRepositoryもDIするなら、NewSharedDataUseCaseの引数を変更
+
+	sharedDataHandler := controller.NewSharedDataHandler(sharedDataUsecase)
 	
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -84,6 +101,15 @@ func main() {
 	api.GET("/todos", todoHandler.GetTodos)
 	api.POST("/todos", todoHandler.CreateTodo)
 	api.DELETE("/todos/:id", todoHandler.DeleteTodo)
+
+	// 新しい共有データとプロジェクト関連のルート
+	e.GET("/shared/group-companies", sharedDataHandler.GetViewGroupCompanies)     // 参照のみ共有データ
+	e.GET("/shared/products", sharedDataHandler.GetSharedProducts)               // コピー可能共有データ
+
+	e.POST("/projects", sharedDataHandler.CreateProject)                         // プロジェクト作成
+	e.GET("/projects/:projectID/products", sharedDataHandler.GetProjectProducts) // プロジェクト固有の商品取得
+	e.POST("/projects/:projectID/products/copy", sharedDataHandler.CopySharedProductToProject) // 共有商品をプロジェクトにコピー
+	e.POST("/projects/products/:projectProductID/promote", sharedDataHandler.PromoteProjectProductToShared) // プロジェクトの商品を共有に格上げ
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

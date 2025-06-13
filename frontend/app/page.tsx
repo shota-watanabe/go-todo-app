@@ -10,7 +10,7 @@ import TodoList from "@/components/TodoList";
 // ★★★ ページ全体をクライアントコンポーネントに変更し、認証チェックを追加 ★★★
 
 export default function Home() {
-  const { user, token, logout, isLoading } = useAuth();
+  const { user, token, isLoading } = useAuth();
   const router = useRouter();
 
   // 認証状態をチェックする
@@ -34,16 +34,10 @@ export default function Home() {
             <h1 className="text-4xl font-bold text-gray-800">Todo App</h1>
             <div className='flex items-center gap-4'>
               <span className='text-gray-700'>こんにちは、{user.username}さん</span>
-              <button
-                onClick={logout}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-              >
-                ログアウト
-              </button>
             </div>
           </div>
           
-          <AddTodoForm />
+          <AddTodoForm token={token}/>
           {/* tokenをpropsで渡すようにする */}
           <TodoList token={token} /> 
         </div>
